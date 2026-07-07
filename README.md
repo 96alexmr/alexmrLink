@@ -13,10 +13,11 @@ Deck plugin).
    npm install
    ```
 
-2. Create `.dev.vars` (gitignored) with a local admin password:
+2. Copy `.dev.vars.example` to `.dev.vars` (gitignored) and set a local admin
+   password:
 
-   ```
-   ADMIN_PASSWORD=whatever-you-want-locally
+   ```sh
+   cp .dev.vars.example .dev.vars
    ```
 
 3. Run the dev server — Wrangler simulates KV locally, so no real Cloudflare
@@ -123,3 +124,12 @@ CI — redeploys don't overwrite it.
     -H "Content-Type: application/json" \
     -d '{"url":"https://example.com"}'
   ```
+
+## Built with
+
+- [Cloudflare Workers](https://developers.cloudflare.com/workers/) + [Workers KV](https://developers.cloudflare.com/kv/)
+- [Hono](https://hono.dev/) for routing
+
+## License
+
+[MIT](LICENSE)
