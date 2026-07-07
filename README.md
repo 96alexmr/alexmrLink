@@ -49,8 +49,21 @@ npx wrangler login
    `REPLACE_WITH_KV_NAMESPACE_ID`. This id isn't sensitive — it's fine to
    commit.
 
-2. **Set the real admin password** (this never touches the repo — it's
-   stored encrypted by Cloudflare):
+2. **Push this repo to GitHub** (if you haven't already).
+
+3. **Connect the repo in the Cloudflare dashboard** — this is what deploys
+   the Worker, both now and on every future push to `main`:
+
+   Workers & Pages → Create → **Import a repository** → pick your GitHub
+   repo → Cloudflare auto-detects `wrangler.toml` (build command/output
+   aren't needed for Workers) → Deploy. It provisions the Worker, the
+   `link.alexmr.me` Custom Domain (DNS + TLS), and the KV binding entirely
+   from `wrangler.toml` — no GitHub Actions file, no Cloudflare API token
+   living in GitHub.
+
+4. **Set the real admin password** (this never touches the repo — it's
+   stored encrypted by Cloudflare, and survives future deploys either
+   method):
 
    ```sh
    npx wrangler secret put ADMIN_PASSWORD
@@ -59,51 +72,13 @@ npx wrangler login
    Use a long, random password (20+ characters) since this is now your only
    line of defense against a random person hitting `/admin` or `/api/*`.
 
-3. **Add DNS.** Make sure `link.alexmr.me` exists as a DNS record in the
-   `alexmr.me` zone (any proxied placeholder record works — the Worker route
-   in `wrangler.toml` intercepts the request before it reaches an origin).
-
-4. **Consider a Cloudflare Rate Limiting rule** on `link.alexmr.me/admin*`
+5. **Consider a Cloudflare Rate Limiting rule** on `link.alexmr.me/admin*`
    and `link.alexmr.me/api/*` (Security → WAF → Rate limiting rules in the
    dashboard) to slow down password-guessing attempts. Not required, but
    recommended before this is public.
 
-5. **First deploy**, to confirm everything above is wired correctly:
-
-   ```sh
-   npm run deploy
-   ```
-
-## GitHub + CI/CD setup
-
-[.github/workflows/deploy.yml](.github/workflows/deploy.yml) deploys
-automatically on every push to `main` via `wrangler-action`. To wire it up:
-
-1. **Create the GitHub repo** (github.com → New repository, or `gh repo
-   create` if you have the CLI), then push this code:
-
-   ```sh
-   git remote add origin <your-repo-url>
-   git push -u origin main
-   ```
-
-2. **Create a Cloudflare API token** the Action can deploy with: Cloudflare
-   dashboard → My Profile → API Tokens → Create Token → "Edit Cloudflare
-   Workers" template (scope it to your account/zone if prompted).
-
-3. **Add two repo secrets** (GitHub repo → Settings → Secrets and variables
-   → Actions → New repository secret):
-   - `CLOUDFLARE_API_TOKEN` — the token from step 2
-   - `CLOUDFLARE_ACCOUNT_ID` — found on the Cloudflare dashboard's right
-     sidebar on any domain's overview page
-
-None of these credentials live in the code — the KV namespace id in
-`wrangler.toml` is the only Cloudflare-account-specific value in the repo,
-and it isn't sensitive on its own (it can't be used to authenticate as you).
-
-After that, every push to `main` redeploys automatically. `ADMIN_PASSWORD`
-is set once via `wrangler secret put` (step 2 above) and isn't touched by
-CI — redeploys don't overwrite it.
+Need to ship a change outside of pushing to `main`? `npm run deploy` still
+works for a one-off manual deploy from your machine.
 
 ## Usage
 

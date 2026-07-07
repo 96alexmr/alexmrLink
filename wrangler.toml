@@ -3,11 +3,11 @@ main = "src/index.ts"
 compatibility_date = "2024-11-01"
 
 routes = [
-  { pattern = "link.alexmr.me/*", zone_name = "alexmr.me" }
+  { pattern = "link.alexmr.me", custom_domain = true }
 ]
 
 kv_namespaces = [
-  { binding = "LINKS", id = "REPLACE_WITH_KV_NAMESPACE_ID" }
+  { binding = "LINKS", id = "01d7c9d722de447fb0bb83b04e160772" }
 ]
 
 [vars]
