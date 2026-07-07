@@ -1,9 +1,23 @@
-# link.alexmr.me
+# Link Shortener (Cloudflare Workers + KV)
 
-Cloudflare Worker link shortener backed by Workers KV, with a
-password-protected admin UI for creating/deleting short links (custom or
-random slugs) and managing scoped API tokens for automations (e.g. a Stream
-Deck plugin).
+A self-hosted link shortener that runs entirely on Cloudflare Workers and
+Workers KV — no other infrastructure. Includes a password-protected admin
+UI for creating/deleting short links (custom or random slugs) and managing
+scoped API tokens for automations (e.g. a Stream Deck plugin, a CLI script,
+etc).
+
+This README uses `link.example.com` / `example.com` as placeholders —
+swap them for your own subdomain and Cloudflare zone throughout.
+
+## Configuration
+
+Before deploying, edit these to use your own domain:
+
+- **`wrangler.toml`** — change `name` (the Worker's name) and the `routes`
+  pattern (currently `link.example.com`) to your subdomain. The domain must
+  already be on Cloudflare as a zone.
+- **`src/admin-page.ts`** (optional) — the `<title>` and heading text are
+  cosmetic; change them if you want the admin UI branded differently.
 
 ## Local development
 
@@ -32,7 +46,7 @@ Deck plugin).
 
 ## One-time Cloudflare setup
 
-You'll need a Cloudflare account with `alexmr.me` on it, and to be logged
+You'll need a Cloudflare account with your domain on it, and to be logged
 into Wrangler locally for the steps below:
 
 ```sh
@@ -57,9 +71,9 @@ npx wrangler login
    Workers & Pages → Create → **Import a repository** → pick your GitHub
    repo → Cloudflare auto-detects `wrangler.toml` (build command/output
    aren't needed for Workers) → Deploy. It provisions the Worker, the
-   `link.alexmr.me` Custom Domain (DNS + TLS), and the KV binding entirely
-   from `wrangler.toml` — no GitHub Actions file, no Cloudflare API token
-   living in GitHub.
+   Custom Domain (DNS + TLS) for whatever hostname you set in step 1, and
+   the KV binding entirely from `wrangler.toml` — no GitHub Actions file,
+   no Cloudflare API token living in GitHub.
 
 4. **Set the real admin password** (this never touches the repo — it's
    stored encrypted by Cloudflare, and survives future deploys either
@@ -72,8 +86,8 @@ npx wrangler login
    Use a long, random password (20+ characters) since this is now your only
    line of defense against a random person hitting `/admin` or `/api/*`.
 
-5. **Consider a Cloudflare Rate Limiting rule** on `link.alexmr.me/admin*`
-   and `link.alexmr.me/api/*` (Security → WAF → Rate limiting rules in the
+5. **Consider a Cloudflare Rate Limiting rule** on `link.example.com/admin*`
+   and `link.example.com/api/*` (Security → WAF → Rate limiting rules in the
    dashboard) to slow down password-guessing attempts. Not required, but
    recommended before this is public.
 
@@ -82,10 +96,10 @@ works for a one-off manual deploy from your machine.
 
 ## Usage
 
-- Visit `https://link.alexmr.me/admin` — browser will prompt for the admin
-  username/password (HTTP Basic Auth), then you can create/delete links and
-  create/revoke API tokens.
-- Short links redirect via `https://link.alexmr.me/<slug>` (302).
+- Visit `https://link.example.com/admin` — browser will prompt for the
+  admin username/password (HTTP Basic Auth), then you can create/delete
+  links and create/revoke API tokens.
+- Short links redirect via `https://link.example.com/<slug>` (302).
 - Leave the slug field blank when creating a link to get a random 6-character
   code.
 - **API tokens** are scoped to creating links only (not listing, deleting,
@@ -94,7 +108,7 @@ works for a one-off manual deploy from your machine.
   creation), then:
 
   ```sh
-  curl -X POST https://link.alexmr.me/api/links \
+  curl -X POST https://link.example.com/api/links \
     -H "Authorization: Bearer amtok_..." \
     -H "Content-Type: application/json" \
     -d '{"url":"https://example.com"}'
